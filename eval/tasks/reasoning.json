@@ -1,0 +1,13 @@
+[
+    {
+      "id": "logic_1",
+      "prompt": "If all Zibs are Blargs and no Blargs are Truns, can a Zib be a Trun?",
+      "expected_quality": 0.9
+    },
+    {
+      "id": "logic_2",
+      "prompt": "Explain why the sky appears blue.",
+      "expected_quality": 0.7
+    }
+  ]
+  

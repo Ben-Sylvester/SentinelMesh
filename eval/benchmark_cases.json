@@ -1,0 +1,22 @@
+[
+  {
+    "id": "logic_reasoning",
+    "prompt": "If all cats are animals and some animals are pets, can we conclude that some cats are pets?",
+    "expected_type": "reasoning"
+  },
+  {
+    "id": "math_numeric",
+    "prompt": "If x = 5 and y = 3, what is x^2 + y^2?",
+    "expected_type": "numeric"
+  },
+  {
+    "id": "creative_text",
+    "prompt": "Write a short motivational paragraph for a young software engineer in Africa.",
+    "expected_type": "text"
+  },
+  {
+    "id": "ethics_balanced",
+    "prompt": "Should governments regulate artificial intelligence? Give balanced arguments.",
+    "expected_type": "analysis"
+  }
+]

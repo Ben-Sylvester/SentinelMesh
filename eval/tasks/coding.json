@@ -1,0 +1,13 @@
+[
+    {
+      "id": "code_1",
+      "prompt": "Write a Python function to check if a number is prime.",
+      "expected_quality": 0.85
+    },
+    {
+      "id": "code_2",
+      "prompt": "Explain the difference between threading and multiprocessing.",
+      "expected_quality": 0.8
+    }
+  ]
+  

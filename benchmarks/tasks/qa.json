@@ -1,0 +1,17 @@
+{
+    "name": "QA",
+    "weight": 1.0,
+    "cases": [
+      {
+        "id": "qa_1",
+        "prompt": "What is the capital of Germany?",
+        "expected_contains": ["Berlin"]
+      },
+      {
+        "id": "qa_2",
+        "prompt": "Explain the difference between TCP and UDP.",
+        "expected_keywords": ["connection", "reliable", "packet"]
+      }
+    ]
+  }
+  
