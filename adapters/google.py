@@ -1,6 +1,6 @@
 import time
 from adapters.base import ModelAdapter
-from core.models import ModelOutput
+from core.models import StrategyResult
 
 
 class GoogleAdapter(ModelAdapter):
@@ -12,14 +12,14 @@ class GoogleAdapter(ModelAdapter):
     def __init__(self, model: str):
         self.model = model
 
-    async def run(self, prompt: str, context=None) -> ModelOutput:
+    async def run(self, prompt: str, context=None) -> StrategyResult:
         start = time.time()
 
         text = f"[Gemini:{self.model}] {prompt[:200]}"
 
         latency = (time.time() - start) * 1000
 
-        return ModelOutput(
+        return StrategyResult(
             output=text,
             cost_usd=0.0015,
             latency_ms=int(latency),

@@ -1,14 +1,14 @@
 from adapters.base import ModelAdapter
-from core.models import ModelOutput
+from core.models import StrategyResult
 
 class GoogleVisionAdapter(ModelAdapter):
     def __init__(self, model_name="gemini-1.5-pro-vision"):
         self.model_name = model_name
 
-    async def run(self, image_bytes, prompt, context=None) -> ModelOutput:
+    async def run(self, image_bytes, prompt, context=None) -> StrategyResult:
         # TODO: integrate Gemini Vision SDK
         # Mock implementation for now
-        return ModelOutput(
+        return StrategyResult(
             output={
                 "objects": ["chart", "table"],
                 "text": ["Revenue Q3"],
