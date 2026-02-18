@@ -47,15 +47,25 @@ curl -X POST http://localhost:8000/run \
 ```
 
 ---
+#Powershell
+---bash
+curl.exe -X POST http://localhost:8000/run `
+  -H "Content-Type: application/json" `
+  -d "{\"prompt\":\"What are the benefits of microservices?\"}"
+---
+
+---
+
+
 
 ## ✨ Features
 
 ### Intelligent Routing & Learning
-✅ Multi-Armed Bandit (LinUCB) for adaptive strategy selection  
-✅ Reinforcement Learning (Q-learning) for long-term optimization  
-✅ World Model with task signature recognition  
-✅ Automatic escalation on failures  
-✅ Retrieval-Augmented Generation (RAG)  
+1. Multi-Armed Bandit (LinUCB) for adaptive strategy selection  
+2. Reinforcement Learning (Q-learning) for long-term optimization  
+3. World Model with task signature recognition  
+4. Automatic escalation on failures  
+5. Retrieval-Augmented Generation (RAG)  
 
 ### Self-Learning & Independence
 🧠 **Continuous Learning** from every interaction  
