@@ -16,6 +16,7 @@ class StrategyResult(BaseModel):
     latency_ms: int
     confidence: float
     raw_outputs: Dict[str, Any]
+    tool_call: Optional[Dict[str, Any]] = None   # B-15: enables ToolAgent loop
 
 
 class ExplainTrace(BaseModel):
@@ -27,6 +28,12 @@ class ExplainTrace(BaseModel):
     latency_ms: int
     confidence: float
     disagreement: Optional[float] = None
+    # B-08: previously missing — caused ValidationError on every build_trace() call
+    selection_source: Optional[str] = None
+    template: Optional[str] = None
+    bandit_scores: Optional[Dict[str, Any]] = None
+    # FIX: reward included so eval/runner.py can access it without KeyError
+    reward: Optional[float] = None
 
 
 class OrchestratorResponse(BaseModel):

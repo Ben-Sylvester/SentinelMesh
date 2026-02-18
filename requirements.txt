@@ -1,13 +1,26 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 openai
-streamlit
-pandas
-plotly
 anthropic
 google-generativeai
 mistralai
 httpx
 requests
-websocket-client
+python-dotenv
+python-multipart
+streamlit
+pandas
+plotly
+numpy
+# Optional: distributed rate limiting across workers
+redis
+
+# Self-Learning System Dependencies
+sentence-transformers>=2.2.0  # For task embeddings
+scikit-learn>=1.3.0          # For clustering
+torch>=2.0.0                 # PyTorch for model training
+transformers>=4.30.0         # Hugging Face transformers
+# Optional: for production training
+# deepspeed>=0.10.0          # Large model training
+# onnxruntime>=1.15.0        # Optimized inference

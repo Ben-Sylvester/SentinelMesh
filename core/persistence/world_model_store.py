@@ -1,24 +1,34 @@
 import json
-from .db import get_db
-
-def save_world_model(world_model):
-    db = get_db()
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS world_model (
-            signature TEXT PRIMARY KEY,
-            data TEXT
-        )
-    """)
-    for sig, data in world_model.beliefs.items():
-        db.execute(
-            "REPLACE INTO world_model VALUES (?, ?)",
-            (sig, json.dumps(data))
-        )
-    db.commit()
+from core.persistence.db import execute, _DB_LOCK, get_db
 
 
-def load_world_model(world_model):
-    db = get_db()
-    rows = db.execute("SELECT * FROM world_model").fetchall()
+def load_world_model(world_model) -> None:
+    """
+    Load world model beliefs from SQLite.
+
+    Previously called ensure_schema() which ran DROP TABLE on every invocation,
+    destroying all persisted learning. Fixed to use CREATE TABLE IF NOT EXISTS
+    (handled by schema.py init on DB creation).
+    """
+    rows = execute("SELECT signature, data FROM world_model")
     for row in rows:
-        world_model.beliefs[row["signature"]] = json.loads(row["data"])
+        sig  = row["signature"] if hasattr(row, "__getitem__") else row[0]
+        data = row["data"]      if hasattr(row, "__getitem__") else row[1]
+        world_model.beliefs[sig] = json.loads(data)
+
+
+def save_world_model(world_model) -> None:
+    db = get_db()
+    with _DB_LOCK:
+        for signature, data in world_model.beliefs.items():
+            db.execute(
+                """
+                INSERT INTO world_model (signature, data)
+                VALUES (?, ?)
+                ON CONFLICT(signature) DO UPDATE SET
+                    data       = excluded.data,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (signature, json.dumps(data)),
+            )
+        db.commit()

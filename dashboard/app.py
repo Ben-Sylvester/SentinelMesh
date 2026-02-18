@@ -1,116 +1,146 @@
+"""
+SentinelMesh — Admin Dashboard
+
+FIX: Previous version read from traces.json, bandit.db, and budget.db —
+all of which were replaced by the unified SQLite database (data/learning_state.db)
+and the tenant_budget.db. Dashboard was showing empty data on every launch.
+Now reads directly from the live databases.
+"""
+
 import streamlit as st
 import pandas as pd
 import sqlite3
 import json
 from pathlib import Path
 
-TRACE_FILE = Path("traces.json")
-BANDIT_DB = Path("bandit.db")
-BUDGET_DB = Path("budget.db")
+DB_PATH     = Path("data/learning_state.db")
+BUDGET_DB   = Path("tenant_budget.db")
+TENANT_DB   = Path("tenants.db")
 
-st.set_page_config(page_title="AI Orchestrator Dashboard", layout="wide")
-st.title("🧠 Multi-Model Orchestrator Dashboard")
+st.set_page_config(page_title="SentinelMesh Admin Dashboard", layout="wide")
+st.title("🧠 SentinelMesh — Admin Dashboard")
 
-# ------------------------
-# Load Data
-# ------------------------
+# ── Data Loaders ────────────────────────────────────────────────────────────
 
-def load_traces():
-    if not TRACE_FILE.exists():
+def load_traces(limit: int = 500) -> pd.DataFrame:
+    if not DB_PATH.exists():
         return pd.DataFrame()
-    with open(TRACE_FILE) as f:
-        return pd.DataFrame(json.load(f))
+    conn = sqlite3.connect(DB_PATH)
+    df   = pd.read_sql(
+        f"SELECT id, timestamp, strategy, data FROM traces ORDER BY id DESC LIMIT {limit}",
+        conn,
+    )
+    conn.close()
+    if df.empty:
+        return df
+    # Expand JSON data column into individual columns
+    expanded = df["data"].apply(lambda x: json.loads(x) if x else {})
+    meta     = pd.json_normalize(expanded)
+    return pd.concat([df[["id", "timestamp", "strategy"]], meta], axis=1)
 
-def load_bandit():
-    if not BANDIT_DB.exists():
+
+def load_bandit() -> pd.DataFrame:
+    if not DB_PATH.exists():
         return pd.DataFrame()
-    conn = sqlite3.connect(BANDIT_DB)
-    df = pd.read_sql("SELECT * FROM arms", conn)
+    conn = sqlite3.connect(DB_PATH)
+    df   = pd.read_sql("SELECT arm, data FROM bandit_state", conn)
+    conn.close()
+    if df.empty:
+        return df
+    expanded = df["data"].apply(lambda x: json.loads(x) if x else {})
+    meta     = pd.json_normalize(expanded)
+    return pd.concat([df["arm"], meta], axis=1)
+
+
+def load_rl_stats() -> pd.DataFrame:
+    if not DB_PATH.exists():
+        return pd.DataFrame()
+    conn = sqlite3.connect(DB_PATH)
+    df   = pd.read_sql("SELECT state, action, value, count FROM rl_qvalues ORDER BY value DESC LIMIT 100", conn)
     conn.close()
     return df
 
-def load_budget():
+
+def load_budget() -> pd.DataFrame:
     if not BUDGET_DB.exists():
         return pd.DataFrame()
     conn = sqlite3.connect(BUDGET_DB)
-    df = pd.read_sql("SELECT * FROM daily_spend", conn)
+    df   = pd.read_sql("SELECT tenant_id, day, total FROM spend ORDER BY day DESC", conn)
     conn.close()
     return df
 
-traces = load_traces()
-bandit = load_bandit()
-budget = load_budget()
 
-# ------------------------
-# KPIs
-# ------------------------
+def load_tenants() -> pd.DataFrame:
+    if not TENANT_DB.exists():
+        return pd.DataFrame()
+    conn = sqlite3.connect(TENANT_DB)
+    df   = pd.read_sql("SELECT id, name, daily_limit, requests_per_minute FROM tenants", conn)
+    conn.close()
+    return df
+
+# ── Load ────────────────────────────────────────────────────────────────────
+
+traces  = load_traces()
+bandit  = load_bandit()
+rl_data = load_rl_stats()
+budget  = load_budget()
+tenants = load_tenants()
+
+# ── KPIs ────────────────────────────────────────────────────────────────────
 
 st.subheader("📈 System KPIs")
-
 col1, col2, col3, col4 = st.columns(4)
 
 if not traces.empty:
-    col1.metric("Total Requests", len(traces))
-    col2.metric("Avg Cost ($)", round(traces["cost_usd"].mean(), 4))
-    col3.metric("Avg Latency (ms)", int(traces["latency_ms"].mean()))
-    col4.metric("Avg Confidence", round(traces["confidence"].mean(), 3))
+    col1.metric("Total Requests",    len(traces))
+    col2.metric("Avg Cost ($)",      round(traces["cost_usd"].mean(), 4)  if "cost_usd"    in traces.columns else "N/A")
+    col3.metric("Avg Latency (ms)",  int(traces["latency_ms"].mean())      if "latency_ms"  in traces.columns else "N/A")
+    col4.metric("Avg Confidence",    round(traces["confidence"].mean(), 3) if "confidence"  in traces.columns else "N/A")
 else:
     st.info("No traces yet. Run some requests first.")
 
-# ------------------------
-# Strategy Usage
-# ------------------------
+# ── Strategy Usage ───────────────────────────────────────────────────────────
 
 st.subheader("🎯 Strategy Usage")
+if not traces.empty and "strategy" in traces.columns:
+    st.bar_chart(traces["strategy"].value_counts())
 
-if not traces.empty:
-    strategy_counts = traces["strategy"].value_counts()
-    st.bar_chart(strategy_counts)
-
-# ------------------------
-# Cost Over Time
-# ------------------------
+# ── Cost Over Time ───────────────────────────────────────────────────────────
 
 st.subheader("💰 Cost Over Time")
-
-if not traces.empty:
-    traces["timestamp"] = pd.to_datetime(traces["timestamp"])
+if not traces.empty and "timestamp" in traces.columns and "cost_usd" in traces.columns:
+    traces["timestamp"] = pd.to_datetime(traces["timestamp"], errors="coerce")
     cost_ts = traces.groupby(traces["timestamp"].dt.floor("min"))["cost_usd"].sum()
     st.line_chart(cost_ts)
 
-# ------------------------
-# Latency Distribution
-# ------------------------
+# ── Bandit Learning State ─────────────────────────────────────────────────────
 
-st.subheader("⏱️ Latency Distribution")
-
-if not traces.empty:
-    st.line_chart(traces["latency_ms"])
-
-# ------------------------
-# Bandit Learning
-# ------------------------
-
-st.subheader("🧠 Bandit Learning State")
-
+st.subheader("🎰 Bandit (LinUCB) Arms")
 if not bandit.empty:
-    bandit["avg_reward"] = bandit["reward"] / bandit["pulls"].clip(lower=1)
     st.dataframe(bandit)
 
-# ------------------------
-# Budget Tracking
-# ------------------------
+# ── RL Q-Values ───────────────────────────────────────────────────────────────
 
-st.subheader("📊 Budget Tracking")
+st.subheader("🤖 RL Q-Values (Top 100)")
+if not rl_data.empty:
+    st.dataframe(rl_data)
 
+# ── Budget Tracking ───────────────────────────────────────────────────────────
+
+st.subheader("📊 Tenant Budget Usage")
 if not budget.empty:
     st.dataframe(budget)
 
-# ------------------------
-# Raw Traces
-# ------------------------
+# ── Tenants ───────────────────────────────────────────────────────────────────
 
-st.subheader("📜 Recent Traces")
+st.subheader("👥 Registered Tenants")
+if not tenants.empty:
+    st.dataframe(tenants)
 
+# ── Raw Traces ────────────────────────────────────────────────────────────────
+
+st.subheader("📜 Recent Traces (last 25)")
 if not traces.empty:
-    st.dataframe(traces.tail(25))
+    st.dataframe(traces.head(25))
+
+st.sidebar.button("🔄 Refresh", on_click=st.rerun)

@@ -1,1 +1,35 @@
-.ve
+# Environment / secrets — NEVER commit API keys
+.env
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+
+# Data / databases (may contain sensitive learned state)
+data/
+*.db
+traces.json
+meta.json
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
