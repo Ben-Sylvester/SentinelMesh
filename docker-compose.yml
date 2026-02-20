@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  sentinelmesh:
+    build: .
+    container_name: sentinelmesh
+    ports:
+      - "8000:8000"
+    environment:
+      # Environment
+      - SENTINELMESH_ENV=production
+      
+      # API Configuration
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_WORKERS=4
+      
+      # Database (using PostgreSQL in production)
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=sentinelmesh
+      - DB_USER=sentinelmesh
+      - DB_PASSWORD=changeme_in_production
+      
+      # Redis (for caching and sessions)
+      - REDIS_ENABLED=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      # Feature Flags
+      - ENABLE_MEMORY=true
+      - ENABLE_STREAMING=true
+      - ENABLE_VISION=true
+      - ENABLE_CACHE=true
+      - ENABLE_FUNCTIONS=true
+      - ENABLE_PROMPT_LIBRARY=true
+      - ENABLE_WORKFLOWS=true
+      - ENABLE_INTEGRATIONS=true
+      - ENABLE_GUARDRAILS=true
+      
+      # LLM Provider Keys (set via .env file)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      
+      # Logging
+      - LOG_LEVEL=INFO
+      - LOG_FILE=/app/logs/sentinelmesh.log
+    
+    volumes:
+      - sentinelmesh-data:/app/data
+      - sentinelmesh-logs:/app/logs
+    
+    depends_on:
+      - postgres
+      - redis
+    
+    networks:
+      - sentinelmesh-network
+    
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinelmesh-postgres
+    environment:
+      - POSTGRES_DB=sentinelmesh
+      - POSTGRES_USER=sentinelmesh
+      - POSTGRES_PASSWORD=changeme_in_production
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - sentinelmesh-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: sentinelmesh-redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - sentinelmesh-network
+    restart: unless-stopped
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: sentinelmesh-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - sentinelmesh
+    networks:
+      - sentinelmesh-network
+    restart: unless-stopped
+
+volumes:
+  sentinelmesh-data:
+  sentinelmesh-logs:
+  postgres-data:
+  redis-data:
+
+networks:
+  sentinelmesh-network:
+    driver: bridge

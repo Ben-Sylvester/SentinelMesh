@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: sentinelmesh
+    env: docker
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: SENTINELMESH_ENV
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 8000
+      - key: ENABLE_MEMORY
+        value: true
+      - key: ENABLE_STREAMING
+        value: true
+      - key: ENABLE_VISION
+        value: true
+      - key: ENABLE_CACHE
+        value: true
+      - key: ENABLE_FUNCTIONS
+        value: true
+      - key: ENABLE_PROMPT_LIBRARY
+        value: true
+      - key: ENABLE_WORKFLOWS
+        value: true
+      - key: ENABLE_INTEGRATIONS
+        value: true
+      - key: ENABLE_GUARDRAILS
+        value: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+databases:
+  - name: sentinelmesh-postgres
+    databaseName: sentinelmesh
+    plan: starter
+    region: oregon

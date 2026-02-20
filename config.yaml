@@ -1,0 +1,137 @@
+# SentinelMesh v3.0 Configuration
+# Complete AI Operating System - Production Ready
+
+# ═══════════════════════════════════════════════════════════════════
+# CORE SYSTEM
+# ═══════════════════════════════════════════════════════════════════
+core:
+  environment: production  # development, staging, production
+  debug: false
+  log_level: INFO
+  port: 8000
+  host: 0.0.0.0
+  workers: 4
+
+# ═══════════════════════════════════════════════════════════════════
+# API PROVIDERS
+# ═══════════════════════════════════════════════════════════════════
+api:
+  # API Keys (override with environment variables)
+  openai_api_key: null  # Set via OPENAI_API_KEY env var
+  anthropic_api_key: null
+  google_api_key: null
+  cohere_api_key: null
+  
+  # Defaults
+  default_provider: openai
+  default_model: gpt-4
+
+# ═══════════════════════════════════════════════════════════════════
+# FEATURE FLAGS - Enable/Disable Features
+# ═══════════════════════════════════════════════════════════════════
+features:
+  # Phase 1: Core AI OS
+  enable_memory: true
+  enable_streaming: true
+  enable_vision: true
+  
+  # Phase 2: Enterprise Features
+  enable_cache: true
+  enable_functions: true
+  enable_prompt_library: true
+  
+  # Phase 3: Automation & Safety
+  enable_workflows: true
+  enable_integrations: true
+  enable_guardrails: true
+  
+  # Phase 4: Ecosystem
+  enable_plugins: false  # Set to true when ready
+  enable_collaboration: false
+  enable_voice: false
+
+# ═══════════════════════════════════════════════════════════════════
+# MEMORY SYSTEM
+# ═══════════════════════════════════════════════════════════════════
+memory:
+  storage_path: data/memory
+  embedding_model: all-MiniLM-L6-v2
+  similarity_threshold: 0.85
+  max_context_length: 10
+  enable_preference_learning: true
+
+# ═══════════════════════════════════════════════════════════════════
+# SEMANTIC CACHE
+# ═══════════════════════════════════════════════════════════════════
+cache:
+  storage_path: data/cache
+  similarity_threshold: 0.95
+  default_ttl: 3600  # 1 hour in seconds
+  max_cache_size_mb: 1000
+  cleanup_interval: 3600
+
+# ═══════════════════════════════════════════════════════════════════
+# GUARDRAILS & SAFETY
+# ═══════════════════════════════════════════════════════════════════
+guardrails:
+  auto_redact_pii: true
+  block_unsafe_content: true
+  min_safety_score: 0.7
+  enable_jailbreak_detection: true
+  log_violations: true
+
+# ═══════════════════════════════════════════════════════════════════
+# VISION SYSTEM
+# ═══════════════════════════════════════════════════════════════════
+vision:
+  default_provider: openai  # openai, anthropic, google
+  default_quality: balanced  # cheap, balanced, accurate
+  image_generation_model: dall-e-3
+  ocr_provider: tesseract
+
+# ═══════════════════════════════════════════════════════════════════
+# VOICE INTERFACE
+# ═══════════════════════════════════════════════════════════════════
+voice:
+  default_stt_provider: openai
+  default_tts_provider: openai
+  default_voice: alloy
+  speech_rate: 1.0
+
+# ═══════════════════════════════════════════════════════════════════
+# WORKFLOW ENGINE
+# ═══════════════════════════════════════════════════════════════════
+workflow:
+  storage_path: data/workflows
+  max_concurrent_workflows: 10
+  default_timeout: 3600
+  enable_scheduling: true
+
+# ═══════════════════════════════════════════════════════════════════
+# PERFORMANCE TUNING
+# ═══════════════════════════════════════════════════════════════════
+performance:
+  max_concurrent_requests: 100
+  request_timeout: 300
+  rate_limit_per_minute: 60
+  enable_compression: true
+
+# ═══════════════════════════════════════════════════════════════════
+# SECURITY
+# ═══════════════════════════════════════════════════════════════════
+security:
+  api_key_required: false  # Set true in production
+  allowed_origins:
+    - "*"  # Restrict in production
+  enable_cors: true
+  max_upload_size_mb: 100
+  rate_limiting: true
+
+# ═══════════════════════════════════════════════════════════════════
+# NOTES
+# ═══════════════════════════════════════════════════════════════════
+# 1. Environment variables ALWAYS override config file values
+# 2. For API keys, use environment variables for security
+# 3. Set debug: true only in development
+# 4. Adjust workers based on CPU cores (typically 2 * cores + 1)
+# 5. Enable features based on your needs and API key availability
